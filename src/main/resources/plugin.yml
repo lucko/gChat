@@ -2,3 +2,4 @@ name: gChat
 version: ${project.version}
 main: me.lucko.gchat.GChatPlugin
 author: Luck
+softDepends: ["LuckPerms"]

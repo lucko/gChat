@@ -9,6 +9,21 @@ A simple global chat plugin for BungeeCord.
 * Multiple formats selected using weight
 * API for adding additional placeholders, or listening to chat events
 
+### Placeholders
+#### Standard Placeholders
+These placeholders are provided by gChat.
+
+* `{username}` or `{name}` - the players username
+* `{server_name}` - the name of the players current server
+* `{uuid}` - the players unique id
+* `{display_name}` - the players display name
+* `{message}` - the chat message being sent by the player.
+
+#### Plugin Hooks
+gChat also provides hooks for the following plugins.
+
+* [**LuckPerms**](https://github.com/lucko/LuckPerms) - gChat will hook with LuckPerms if it's installed on the proxy, and allows you to use any of the placeholders listed [here](https://github.com/lucko/LuckPerms/wiki/PlaceholderAPI).
+
 ### Configuration
 ```yaml
 # gChat Configuration
@@ -48,7 +63,7 @@ formats:
     check-permission: true
 
     # the actual format for the chat message
-    format: "{lp_prefix}{name}{lp_suffix}{message}"
+    format: "{luckperms_prefix}{name}{luckperms_suffix}{message}"
 
     format-extra:
 
@@ -68,7 +83,7 @@ formats:
   staff:
     priority: 150
     check-permission: true
-    format: "* {lp_prefix}{name}{lp_suffix}&c: &b&l{message}"
+    format: "* {luckperms_prefix}{name}{luckperms_suffix}&c: &b&l{message}"
     format-extra:
       hover: |-
         &e{name} is a staff member!

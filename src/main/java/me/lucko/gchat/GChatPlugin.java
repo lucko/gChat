@@ -34,6 +34,7 @@ import me.lucko.gchat.api.ChatFormat;
 import me.lucko.gchat.api.GChatApi;
 import me.lucko.gchat.config.GChatConfig;
 import me.lucko.gchat.api.Placeholder;
+import me.lucko.gchat.hooks.LuckPermsHook;
 import me.lucko.gchat.placeholder.StandardPlaceholders;
 
 import net.kyori.text.Component;
@@ -76,6 +77,7 @@ public class GChatPlugin extends Plugin implements GChatApi {
 
     @Override
     public void onEnable() {
+        getLogger().info("Enabling gChat v" + getDescription().getVersion());
 
         // load configuration
         try {
@@ -86,6 +88,11 @@ public class GChatPlugin extends Plugin implements GChatApi {
 
         // init placeholder hooks
         placeholders.add(new StandardPlaceholders());
+
+        // hook with luckperms
+        if (getProxy().getPluginManager().getPlugin("LuckPerms") != null) {
+            placeholders.add(new LuckPermsHook());
+        }
 
         // register chat listener
         getProxy().getPluginManager().registerListener(this, new GChatListener(this));

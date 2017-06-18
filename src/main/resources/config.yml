@@ -35,7 +35,7 @@ formats:
     check-permission: true
 
     # the actual format for the chat message
-    format: "{lp_prefix}{name}{lp_suffix}{message}"
+    format: "{luckperms_prefix}{name}{luckperms_suffix}{message}"
 
     format-extra:
 
@@ -55,7 +55,7 @@ formats:
   staff:
     priority: 150
     check-permission: true
-    format: "* {lp_prefix}{name}{lp_suffix}&c: &b&l{message}"
+    format: "* {luckperms_prefix}{name}{luckperms_suffix}&c: &b&l{message}"
     format-extra:
       hover: |-
         &e{name} is a staff member!
