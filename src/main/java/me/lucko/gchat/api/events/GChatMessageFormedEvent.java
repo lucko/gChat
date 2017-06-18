@@ -33,6 +33,7 @@ import lombok.ToString;
 
 import me.lucko.gchat.api.ChatFormat;
 
+import net.kyori.text.Component;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Event;
@@ -49,6 +50,6 @@ public class GChatMessageFormedEvent extends Event {
     private final ProxiedPlayer sender;
     private final ChatFormat format;
     private final String rawMessage;
-    private final BaseComponent[] message;
+    private final Component message;
 
 }

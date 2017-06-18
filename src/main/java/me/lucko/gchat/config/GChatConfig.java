@@ -37,9 +37,9 @@ import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.config.Configuration;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @Getter
 @ToString
@@ -87,17 +87,17 @@ public class GChatConfig {
             throw new IllegalArgumentException("Missing section: formats");
         }
 
-        Set<ChatFormat> formats = new HashSet<>();
+        Map<String, ChatFormat> formats = new HashMap<>();
         for (String id : formatsSection.getKeys()) {
             Configuration formatSection = formatsSection.getSection(id);
             if (formatSection == null) {
                 continue;
             }
 
-            formats.add(new ChatFormat(formatSection));
+            formats.put(id.toLowerCase(), new ChatFormat(id.toLowerCase(), formatSection));
         }
 
-        List<ChatFormat> formatsList = new ArrayList<>(formats);
+        List<ChatFormat> formatsList = new ArrayList<>(formats.values());
         formatsList.sort((o1, o2) -> {
             int ret = Integer.compare(o1.getPriority(), o2.getPriority());
             return ret > 0 ? -1 : 1;

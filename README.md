@@ -15,7 +15,7 @@ A simple global chat plugin for BungeeCord.
 
 # If a player doesn't have permission for any of the formats, should the chat message be passed through to the
 # backend server or just ignored.
-passthough: true
+passthrough: true
 
 # if permissions are required to send/receive chat messages
 require-permission:
@@ -70,11 +70,11 @@ formats:
     check-permission: true
     format: "* {lp_prefix}{name}{lp_suffix}&c: &b&l{message}"
     format-extra:
-      hover:
-        - "&e{name} is a staff member!"
-        - ""
-        - "&6Feel free to message them any time, by"
-        - "&6clicking this message!"
+      hover: |-
+        &e{name} is a staff member!
+
+        &6Feel free to message them any time, by
+        &6clicking this message!
       click:
         type: suggest_command
         value: "/msg {name} "

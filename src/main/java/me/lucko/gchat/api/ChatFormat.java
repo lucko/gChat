@@ -29,7 +29,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.ToString;
 
-import net.md_5.bungee.api.chat.ClickEvent;
+import net.kyori.text.event.ClickEvent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.config.Configuration;
 
@@ -51,8 +51,8 @@ public class ChatFormat {
     private final ClickEvent.Action clickType;
     private final String clickValue;
 
-    public ChatFormat(Configuration c) {
-        this.id = getStringNonNull(c, "id");
+    public ChatFormat(String id, Configuration c) {
+        this.id = id;
         this.priority = c.getInt("priority", 0);
         this.checkPermission = c.getBoolean("check-permission", true);
         this.formatText = getStringNonNull(c, "format");

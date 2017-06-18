@@ -36,6 +36,8 @@ import me.lucko.gchat.config.GChatConfig;
 import me.lucko.gchat.api.Placeholder;
 import me.lucko.gchat.placeholder.StandardPlaceholders;
 
+import net.kyori.text.Component;
+import net.kyori.text.serializer.ComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -63,6 +65,10 @@ public class GChatPlugin extends Plugin implements GChatApi {
         return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', text));
     }
 
+    public static BaseComponent[] convertText(Component component) {
+        return net.md_5.bungee.chat.ComponentSerializer.parse(ComponentSerializer.serialize(component));
+    }
+
     @Getter
     private GChatConfig config;
 
@@ -82,7 +88,10 @@ public class GChatPlugin extends Plugin implements GChatApi {
         placeholders.add(new StandardPlaceholders());
 
         // register chat listener
-        getProxy().getPluginManager().registerListener(this, new ChatListener(this));
+        getProxy().getPluginManager().registerListener(this, new GChatListener(this));
+
+        // register command
+        getProxy().getPluginManager().registerCommand(this, new GChatCommand(this));
 
         // init api singleton
         GChat.setApi(this);

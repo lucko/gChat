@@ -53,7 +53,7 @@ public class StandardPlaceholders implements Placeholder {
             case "display_name":
                 return player.getDisplayName();
             default:
-                return "null";
+                return null;
         }
     }
 }

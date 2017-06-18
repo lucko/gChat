@@ -32,20 +32,20 @@ import me.lucko.gchat.api.events.GChatEvent;
 import me.lucko.gchat.api.events.GChatMessageFormedEvent;
 import me.lucko.gchat.api.events.GChatMessageSendEvent;
 
+import net.kyori.text.Component;
+import net.kyori.text.event.ClickEvent;
+import net.kyori.text.event.HoverEvent;
+import net.kyori.text.serializer.ComponentSerializer;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
-import java.util.function.Consumer;
-
 @RequiredArgsConstructor
-public class ChatListener implements Listener {
+public class GChatListener implements Listener {
     private final GChatPlugin plugin;
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -122,26 +122,25 @@ public class ChatListener implements Listener {
         formatText = formatText.replace("{message}", playerMessage);
 
         // convert the format to a message
-        BaseComponent[] message = GChatPlugin.convertText(formatText);
+        Component message = ComponentSerializer.parseFromLegacy(formatText, '&');
 
         // apply any hover events
         if (hover != null) {
-            HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, GChatPlugin.convertText(hover));
-            for (BaseComponent component : message) {
-                applyRecursive(component, c -> c.setHoverEvent(hoverEvent));
-            }
+            HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, ComponentSerializer.parseFromLegacy(hover, '&'));
+            message.applyRecursively(c -> c.hoverEvent(hoverEvent));
         }
 
         // apply any click events
         if (clickType != null) {
             ClickEvent clickEvent = new ClickEvent(clickType, clickValue);
-            for (BaseComponent component : message) {
-                applyRecursive(component, c -> c.setClickEvent(clickEvent));
-            }
+            message.applyRecursively(c -> c.clickEvent(clickEvent));
         }
 
         GChatMessageFormedEvent formedEvent = new GChatMessageFormedEvent(player, format, playerMessage, message);
         plugin.getProxy().getPluginManager().callEvent(formedEvent);
+
+        // convert to bungee format
+        BaseComponent[] bungeeComponent = GChatPlugin.convertText(message);
 
         // send the message to online players
         for (ProxiedPlayer p : plugin.getProxy().getPlayers()) {
@@ -153,14 +152,7 @@ public class ChatListener implements Listener {
                 continue;
             }
 
-            p.sendMessage(message);
-        }
-    }
-
-    private static void applyRecursive(BaseComponent component, Consumer<BaseComponent> action) {
-        action.accept(component);
-        for (BaseComponent child : component.getExtra()) {
-            applyRecursive(child, action);
+            p.sendMessage(bungeeComponent);
         }
     }
 

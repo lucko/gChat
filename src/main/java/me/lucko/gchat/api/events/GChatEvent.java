@@ -49,6 +49,6 @@ public class GChatEvent extends Event implements Cancellable {
     private final ChatEvent chatEvent;
 
     @Setter
-    private boolean cancelled = true;
+    private boolean cancelled = false;
 
 }
