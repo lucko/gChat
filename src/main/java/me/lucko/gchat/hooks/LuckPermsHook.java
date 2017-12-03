@@ -43,6 +43,7 @@ import me.lucko.luckperms.api.caching.UserData;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -50,7 +51,7 @@ import java.util.stream.Collectors;
  * Re-implementation of the LuckPerms PlaceholderAPI hook, for use in gChat on BungeeCord.
  *
  * See here:
- * https://github.com/lucko/LuckPermsPlaceholders/blob/master/src/main/java/me/lucko/luckperms/placeholders/LuckPermsExpansion.java
+ * https://github.com/lucko/LuckPermsPlaceholders/blob/master/luckperms-papi-expansion/src/main/java/me/lucko/luckperms/placeholders/LuckPermsExpansion.java
  */
 public class LuckPermsHook implements Placeholder {
     private final LuckPermsApi api;
@@ -107,7 +108,7 @@ public class LuckPermsHook implements Placeholder {
         }
 
         if (identifier.equals("groups")) {
-            return user.getGroupNames().stream().collect(Collectors.joining(", "));
+            return user.getOwnNodes().stream().filter(Node::isGroupNode).map(Node::getGroupName).collect(Collectors.joining(", "));
         }
 
         if (identifier.startsWith("has_permission_") && identifier.length() > "has_permission_".length()) {
@@ -127,7 +128,7 @@ public class LuckPermsHook implements Placeholder {
 
         if (identifier.startsWith("in_group_") && identifier.length() > "in_group_".length()) {
             String groupName = identifier.substring("in_group_".length());
-            return formatBoolean(user.getGroupNames().contains(groupName));
+            return formatBoolean(user.getOwnNodes().stream().filter(Node::isGroupNode).map(Node::getGroupName).anyMatch(s -> s.equalsIgnoreCase(groupName)));
         }
 
         if (identifier.startsWith("inherits_group_") && identifier.length() > "inherits_group_".length()) {
@@ -145,12 +146,8 @@ public class LuckPermsHook implements Placeholder {
         if (identifier.startsWith("has_groups_on_track_") && identifier.length() > "has_groups_on_track_".length()) {
             String trackName = identifier.substring("has_groups_on_track_".length());
             return api.getTrackSafe(trackName).map(t -> {
-                for (String group : user.getGroupNames()) {
-                    if (t.containsGroup(group)) {
-                        return formatBoolean(true);
-                    }
-                }
-                return formatBoolean(false);
+                boolean match = user.getOwnNodes().stream().filter(Node::isGroupNode).map(Node::getGroupName).anyMatch(t::containsGroup);
+                return formatBoolean(match);
             }).orElse("");
         }
 
@@ -158,9 +155,8 @@ public class LuckPermsHook implements Placeholder {
             return user.getPermissions().stream()
                     .filter(Node::isGroupNode)
                     .map(Node::getGroupName)
-                    .map(api::getGroupSafe)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .map(api::getGroup)
+                    .filter(Objects::nonNull)
                     .sorted((o1, o2) -> {
                         int ret = Integer.compare(o1.getWeight().orElse(0), o2.getWeight().orElse(0));
                         return ret == 1 ? 1 : -1;
@@ -174,9 +170,8 @@ public class LuckPermsHook implements Placeholder {
             return user.getPermissions().stream()
                     .filter(Node::isGroupNode)
                     .map(Node::getGroupName)
-                    .map(api::getGroupSafe)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .map(api::getGroup)
+                    .filter(Objects::nonNull)
                     .sorted((o1, o2) -> {
                         int ret = Integer.compare(o1.getWeight().orElse(0), o2.getWeight().orElse(0));
                         return ret == 1 ? -1 : 1;
@@ -190,9 +185,8 @@ public class LuckPermsHook implements Placeholder {
             List<String> tracks = Splitter.on(',').trimResults().splitToList(identifier.substring("first_group_on_tracks_".length()));
             PermissionData permData = data.getPermissionData(makeContexts(user));
             return tracks.stream()
-                    .map(api::getTrackSafe)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .map(api::getTrack)
+                    .filter(Objects::nonNull)
                     .map(Track::getGroups)
                     .map(groups -> groups.stream()
                             .filter(s -> permData.getPermissionValue("group." + s).asBoolean())
@@ -208,9 +202,8 @@ public class LuckPermsHook implements Placeholder {
             List<String> tracks = Splitter.on(',').trimResults().splitToList(identifier.substring("last_group_on_tracks_".length()));
             PermissionData permData = data.getPermissionData(makeContexts(user));
             return tracks.stream()
-                    .map(api::getTrackSafe)
-                    .filter(Optional::isPresent)
-                    .map(Optional::get)
+                    .map(api::getTrack)
+                    .filter(Objects::nonNull)
                     .map(Track::getGroups)
                     .map(Lists::reverse)
                     .map(groups -> groups.stream()

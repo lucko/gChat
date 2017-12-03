@@ -32,13 +32,13 @@ import com.google.common.collect.ImmutableSet;
 
 import me.lucko.gchat.api.ChatFormat;
 import me.lucko.gchat.api.GChatApi;
-import me.lucko.gchat.config.GChatConfig;
 import me.lucko.gchat.api.Placeholder;
+import me.lucko.gchat.config.GChatConfig;
 import me.lucko.gchat.hooks.LuckPermsHook;
 import me.lucko.gchat.placeholder.StandardPlaceholders;
 
 import net.kyori.text.Component;
-import net.kyori.text.serializer.ComponentSerializer;
+import net.kyori.text.serializer.ComponentSerializers;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.TextComponent;
@@ -67,7 +67,7 @@ public class GChatPlugin extends Plugin implements GChatApi {
     }
 
     public static BaseComponent[] convertText(Component component) {
-        return net.md_5.bungee.chat.ComponentSerializer.parse(ComponentSerializer.serialize(component));
+        return net.md_5.bungee.chat.ComponentSerializer.parse(ComponentSerializers.JSON.serialize(component));
     }
 
     @Getter

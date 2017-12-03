@@ -27,7 +27,6 @@ package me.lucko.gchat.api.events;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 
@@ -40,7 +39,6 @@ import net.md_5.bungee.api.plugin.Event;
  * Called just before gChat is going to handle a chat event from a player.
  */
 @Getter
-@RequiredArgsConstructor
 @EqualsAndHashCode(callSuper = false)
 @ToString
 public class GChatEvent extends Event implements Cancellable {
@@ -49,6 +47,11 @@ public class GChatEvent extends Event implements Cancellable {
     private final ChatEvent chatEvent;
 
     @Setter
-    private boolean cancelled = false;
+    private boolean cancelled;
 
+    public GChatEvent(ProxiedPlayer sender, ChatEvent chatEvent) {
+        this.sender = sender;
+        this.chatEvent = chatEvent;
+        this.cancelled = chatEvent.isCancelled();
+    }
 }

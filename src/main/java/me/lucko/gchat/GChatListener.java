@@ -32,10 +32,10 @@ import me.lucko.gchat.api.events.GChatEvent;
 import me.lucko.gchat.api.events.GChatMessageFormedEvent;
 import me.lucko.gchat.api.events.GChatMessageSendEvent;
 
-import net.kyori.text.Component;
+import net.kyori.text.TextComponent;
 import net.kyori.text.event.ClickEvent;
 import net.kyori.text.event.HoverEvent;
-import net.kyori.text.serializer.ComponentSerializer;
+import net.kyori.text.serializer.ComponentSerializers;
 import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
@@ -121,20 +121,21 @@ public class GChatListener implements Listener {
         // apply the players message to the chat format
         formatText = formatText.replace("{message}", playerMessage);
 
-        // convert the format to a message
-        Component message = ComponentSerializer.parseFromLegacy(formatText, '&');
-
         // apply any hover events
-        if (hover != null) {
-            HoverEvent hoverEvent = new HoverEvent(HoverEvent.Action.SHOW_TEXT, ComponentSerializer.parseFromLegacy(hover, '&'));
-            message.applyRecursively(c -> c.hoverEvent(hoverEvent));
-        }
+        HoverEvent hoverEvent = hover == null ? null : new HoverEvent(HoverEvent.Action.SHOW_TEXT, ComponentSerializers.LEGACY.deserialize(hover, '&'));
+        ClickEvent clickEvent = clickType == null ? null : new ClickEvent(clickType, clickValue);
 
-        // apply any click events
-        if (clickType != null) {
-            ClickEvent clickEvent = new ClickEvent(clickType, clickValue);
-            message.applyRecursively(c -> c.clickEvent(clickEvent));
-        }
+        // convert the format to a message
+        TextComponent message = ComponentSerializers.LEGACY.deserialize(formatText, '&').toBuilder()
+                .applyDeep(m -> {
+                    if (hoverEvent != null) {
+                        m.hoverEvent(hoverEvent);
+                    }
+                    if (clickEvent != null) {
+                        m.clickEvent(clickEvent);
+                    }
+                })
+                .build();
 
         GChatMessageFormedEvent formedEvent = new GChatMessageFormedEvent(player, format, playerMessage, message);
         plugin.getProxy().getPluginManager().callEvent(formedEvent);
