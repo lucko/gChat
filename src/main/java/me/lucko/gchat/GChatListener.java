@@ -36,7 +36,6 @@ import net.kyori.text.TextComponent;
 import net.kyori.text.event.ClickEvent;
 import net.kyori.text.event.HoverEvent;
 import net.kyori.text.serializer.ComponentSerializers;
-import net.md_5.bungee.api.ChatColor;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ChatEvent;
@@ -44,8 +43,11 @@ import net.md_5.bungee.api.plugin.Listener;
 import net.md_5.bungee.event.EventHandler;
 import net.md_5.bungee.event.EventPriority;
 
+import java.util.regex.Pattern;
+
 @RequiredArgsConstructor
 public class GChatListener implements Listener {
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)(" + String.valueOf('§') + "|&)[0-9A-FK-OR]");
     private final GChatPlugin plugin;
 
     @EventHandler(priority = EventPriority.NORMAL)
@@ -115,7 +117,7 @@ public class GChatListener implements Listener {
         // get the players message, and remove any color if they don't have permission for it.
         String playerMessage = e.getMessage();
         if (!player.hasPermission("gchat.color")) {
-            playerMessage = ChatColor.stripColor(playerMessage);
+            playerMessage = STRIP_COLOR_PATTERN.matcher(playerMessage).replaceAll("");
         }
 
         // apply the players message to the chat format
