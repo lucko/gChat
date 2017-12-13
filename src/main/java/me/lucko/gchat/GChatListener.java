@@ -115,7 +115,7 @@ public class GChatListener implements Listener {
         // get the players message, and remove any color if they don't have permission for it.
         String playerMessage = e.getMessage();
         if (!player.hasPermission("gchat.color")) {
-            playerMessage = ChatColor.stripColor(playerMessage);
+            playerMessage = ChatColor.stripColor(playerMessage.replaceAll("&[0-9a-f]",""));
         }
 
         // apply the players message to the chat format
