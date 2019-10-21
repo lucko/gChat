@@ -47,6 +47,7 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
+import net.md_5.bungee.log.ConciseFormatter;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,6 +57,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -72,6 +75,9 @@ public class GChatPlugin extends Plugin implements GChatApi {
 
     @Getter
     private GChatConfig config;
+
+    @Getter
+    private Logger chatLogger;
 
     private final Set<Placeholder> placeholders = ConcurrentHashMap.newKeySet();
 
@@ -176,7 +182,9 @@ public class GChatPlugin extends Plugin implements GChatApi {
 
     private GChatConfig loadConfig() throws Exception {
         Configuration configuration = ConfigurationProvider.getProvider(YamlConfiguration.class).load(getBundledFile("config.yml"));
-        return new GChatConfig(configuration);
+        GChatConfig gChatConfig = new GChatConfig(configuration);
+        chatLogger = loadLogger(gChatConfig);
+        return gChatConfig;
     }
 
     private File getBundledFile(String name) {
@@ -192,5 +200,31 @@ public class GChatPlugin extends Plugin implements GChatApi {
         }
 
         return file;
+    }
+
+    public Logger loadLogger(GChatConfig config) {
+        try {
+            Logger logger = Logger.getLogger("gChat");
+            logger.setUseParentHandlers(false);
+
+            final ConciseFormatter formatter = new ConciseFormatter();
+            if (config.isLogChat()) {
+                FileHandler logFile = new FileHandler(config.getLogFile(), true);
+                logFile.setFormatter(formatter);
+                logger.addHandler(logFile);
+                getLogger().info("Logging chat to " + config.getLogFile());
+            }
+
+            if (config.isLogChatGlobal()) {
+                logger.setParent(getLogger());
+                logger.setUseParentHandlers(true);
+                getLogger().info("Logging chat to console: " + getLogger().toString());
+            }
+
+            return logger;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return getLogger();
+        }
     }
 }

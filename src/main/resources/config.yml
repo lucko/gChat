@@ -4,6 +4,13 @@
 # backend server or just ignored.
 passthrough: true
 
+# Logs chat to file `log-file` as specified below
+log-chat: true
+# Logs chat to Bungeecord log and proxy.log.0
+log-chat-global: true
+# File to log chat to
+log-file: gChat.log
+
 # if permissions are required to send/receive chat messages
 require-permission:
   # if true, players will need to have the "gchat.send" permission to send messages

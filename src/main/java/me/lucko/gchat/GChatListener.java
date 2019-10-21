@@ -145,6 +145,10 @@ public class GChatListener implements Listener {
         // convert to bungee format
         BaseComponent[] bungeeComponent = GChatPlugin.convertText(message);
 
+        // log chat message
+        plugin.getChatLogger()
+                .info(BaseComponent.toPlainText(bungeeComponent));
+
         // send the message to online players
         for (ProxiedPlayer p : plugin.getProxy().getPlayers()) {
             boolean cancelled = plugin.getConfig().isRequireReceivePermission() && !player.hasPermission("gchat.receive");
