@@ -25,15 +25,12 @@
 
 package me.lucko.gchat.config;
 
+import com.google.common.collect.ImmutableList;
 import lombok.Getter;
 import lombok.ToString;
-
-import com.google.common.collect.ImmutableList;
-
-import me.lucko.gchat.GChatPlugin;
 import me.lucko.gchat.api.ChatFormat;
-
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.kyori.text.Component;
+import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.config.Configuration;
 
 import java.util.ArrayList;
@@ -56,7 +53,7 @@ public class GChatConfig {
     private final boolean passthrough;
 
     private final boolean requireSendPermission;
-    private final BaseComponent[] requireSendPermissionFailMessage;
+    private final Component requireSendPermissionFailMessage;
     private final boolean requireReceivePermission;
     private final boolean requirePermissionPassthrough;
 
@@ -81,11 +78,7 @@ public class GChatConfig {
         this.requireSendPermission = requirePermission.getBoolean("send", false);
 
         String failMsg = getStringNonNull(requirePermission, "send-fail");
-        if (failMsg.isEmpty()) {
-            requireSendPermissionFailMessage = null;
-        } else {
-            requireSendPermissionFailMessage = GChatPlugin.convertText(failMsg);
-        }
+        this.requireSendPermissionFailMessage = failMsg.isEmpty() ? null : LegacyComponentSerializer.legacy().deserialize(failMsg, '&');
 
         this.requireReceivePermission = requirePermission.getBoolean("receive", false);
         this.requirePermissionPassthrough = requirePermission.getBoolean("passthrough", true);

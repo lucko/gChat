@@ -26,6 +26,7 @@
 package me.lucko.gchat;
 
 import net.kyori.text.TextComponent;
+import net.kyori.text.adapter.bungeecord.TextAdapter;
 import net.kyori.text.format.TextColor;
 import net.kyori.text.format.TextDecoration;
 import net.md_5.bungee.api.CommandSender;
@@ -51,7 +52,7 @@ public class GChatCommand extends Command {
                     .append(TextComponent.of("v" + plugin.getDescription().getVersion()).color(TextColor.WHITE).decoration(TextDecoration.BOLD, false))
                     .append(TextComponent.of(".").color(TextColor.RED).decoration(TextDecoration.BOLD, false));
 
-            sender.sendMessage(GChatPlugin.convertText(versionMsg));
+            TextAdapter.sendComponent(sender, versionMsg);
             return;
         }
 
@@ -67,11 +68,11 @@ public class GChatCommand extends Command {
                 reloadMsg = PREFIX.append(TextComponent.of("Reload failed. Check the console for errors").color(TextColor.RED).decoration(TextDecoration.BOLD, false));
             }
 
-            sender.sendMessage(GChatPlugin.convertText(reloadMsg));
+            TextAdapter.sendComponent(sender, reloadMsg);
             return;
         }
 
         TextComponent unknownCommand = PREFIX.append(TextComponent.of("Unknown sub command.").color(TextColor.WHITE).decoration(TextDecoration.BOLD, false));
-        sender.sendMessage(GChatPlugin.convertText(unknownCommand));
+        TextAdapter.sendComponent(sender, unknownCommand);
     }
 }

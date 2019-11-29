@@ -25,53 +25,42 @@
 
 package me.lucko.gchat;
 
+import com.google.common.collect.ImmutableSet;
 import lombok.Getter;
 import lombok.NonNull;
-
-import com.google.common.collect.ImmutableSet;
-
 import me.lucko.gchat.api.ChatFormat;
 import me.lucko.gchat.api.GChatApi;
 import me.lucko.gchat.api.Placeholder;
 import me.lucko.gchat.config.GChatConfig;
 import me.lucko.gchat.hooks.LuckPermsHook;
 import me.lucko.gchat.placeholder.StandardPlaceholders;
-
-import net.kyori.text.Component;
-import net.kyori.text.serializer.ComponentSerializers;
-import net.md_5.bungee.api.ChatColor;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
-import net.md_5.bungee.log.ConciseFormatter;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GChatPlugin extends Plugin implements GChatApi {
     private static final Pattern PLACEHOLDER_PATTERN = Pattern.compile("\\{([^\\{\\}]+)\\}");
-
-    public static BaseComponent[] convertText(String text) {
-        return TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', text));
-    }
-
-    public static BaseComponent[] convertText(Component component) {
-        return net.md_5.bungee.chat.ComponentSerializer.parse(ComponentSerializers.JSON.serialize(component));
-    }
 
     @Getter
     private GChatConfig config;
@@ -207,7 +196,30 @@ public class GChatPlugin extends Plugin implements GChatApi {
             Logger logger = Logger.getLogger("gChat");
             logger.setUseParentHandlers(false);
 
-            final ConciseFormatter formatter = new ConciseFormatter();
+            final Formatter formatter = new Formatter() {
+                private final DateFormat date = new SimpleDateFormat("HH:mm:ss");
+
+                @Override
+                public String format(LogRecord record) {
+                    StringBuilder formatted = new StringBuilder();
+
+                    formatted.append(date.format(record.getMillis()));
+                    formatted.append(" [");
+                    formatted.append(record.getLevel().getLocalizedName());
+                    formatted.append("] ");
+                    formatted.append(formatMessage(record));
+                    formatted.append('\n');
+
+                    if (record.getThrown() != null) {
+                        StringWriter writer = new StringWriter();
+                        record.getThrown().printStackTrace(new PrintWriter(writer));
+                        formatted.append(writer);
+                    }
+
+                    return formatted.toString();
+                }
+            };
+
             if (config.isLogChat()) {
                 FileHandler logFile = new FileHandler(config.getLogFile(), true);
                 logFile.setFormatter(formatter);

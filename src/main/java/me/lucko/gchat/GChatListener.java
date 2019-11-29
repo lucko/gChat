@@ -25,18 +25,19 @@
 
 package me.lucko.gchat;
 
+import com.google.common.collect.Iterables;
 import lombok.RequiredArgsConstructor;
-
 import me.lucko.gchat.api.ChatFormat;
 import me.lucko.gchat.api.events.GChatEvent;
 import me.lucko.gchat.api.events.GChatMessageFormedEvent;
 import me.lucko.gchat.api.events.GChatMessageSendEvent;
-
+import net.kyori.text.Component;
 import net.kyori.text.TextComponent;
+import net.kyori.text.adapter.bungeecord.TextAdapter;
 import net.kyori.text.event.ClickEvent;
 import net.kyori.text.event.HoverEvent;
-import net.kyori.text.serializer.ComponentSerializers;
-import net.md_5.bungee.api.chat.BaseComponent;
+import net.kyori.text.serializer.legacy.LegacyComponentSerializer;
+import net.kyori.text.serializer.plain.PlainComponentSerializer;
 import net.md_5.bungee.api.connection.ProxiedPlayer;
 import net.md_5.bungee.api.event.ChatEvent;
 import net.md_5.bungee.api.plugin.Listener;
@@ -77,9 +78,9 @@ public class GChatListener implements Listener {
             // they don't have permission, and the message shouldn't be passed to the backend.
             e.setCancelled(true);
 
-            BaseComponent[] failMessage = plugin.getConfig().getRequireSendPermissionFailMessage();
+            Component failMessage = plugin.getConfig().getRequireSendPermissionFailMessage();
             if (failMessage != null) {
-                player.sendMessage(failMessage);
+                TextAdapter.sendComponent(player, failMessage);
             }
 
             return;
@@ -115,20 +116,22 @@ public class GChatListener implements Listener {
         }
 
         // get the players message, and remove any color if they don't have permission for it.
-        String playerMessage = e.getMessage();
-        if (!player.hasPermission("gchat.color")) {
-            playerMessage = STRIP_COLOR_PATTERN.matcher(playerMessage).replaceAll("");
+        String playerMessage;
+        if (player.hasPermission("gchat.color")) {
+            playerMessage = e.getMessage();
+        } else {
+            playerMessage = STRIP_COLOR_PATTERN.matcher(e.getMessage()).replaceAll("");
         }
 
         // apply the players message to the chat format
         formatText = formatText.replace("{message}", playerMessage);
 
         // apply any hover events
-        HoverEvent hoverEvent = hover == null ? null : new HoverEvent(HoverEvent.Action.SHOW_TEXT, ComponentSerializers.LEGACY.deserialize(hover, '&'));
-        ClickEvent clickEvent = clickType == null ? null : new ClickEvent(clickType, clickValue);
+        HoverEvent hoverEvent = hover == null ? null : HoverEvent.showText(LegacyComponentSerializer.legacy().deserialize(hover, '&'));
+        ClickEvent clickEvent = clickType == null ? null : ClickEvent.of(clickType, clickValue);
 
         // convert the format to a message
-        TextComponent message = ComponentSerializers.LEGACY.deserialize(formatText, '&').toBuilder()
+        TextComponent message = LegacyComponentSerializer.legacy().deserialize(formatText, '&').toBuilder()
                 .applyDeep(m -> {
                     if (hoverEvent != null) {
                         m.hoverEvent(hoverEvent);
@@ -142,25 +145,18 @@ public class GChatListener implements Listener {
         GChatMessageFormedEvent formedEvent = new GChatMessageFormedEvent(player, format, playerMessage, message);
         plugin.getProxy().getPluginManager().callEvent(formedEvent);
 
-        // convert to bungee format
-        BaseComponent[] bungeeComponent = GChatPlugin.convertText(message);
-
         // log chat message
-        plugin.getChatLogger()
-                .info(BaseComponent.toPlainText(bungeeComponent));
+        plugin.getChatLogger().info(PlainComponentSerializer.INSTANCE.serialize(message));
 
         // send the message to online players
-        for (ProxiedPlayer p : plugin.getProxy().getPlayers()) {
+        Iterable<ProxiedPlayer> recipients = Iterables.filter(plugin.getProxy().getPlayers(), p -> {
             boolean cancelled = plugin.getConfig().isRequireReceivePermission() && !player.hasPermission("gchat.receive");
             GChatMessageSendEvent sendEvent = new GChatMessageSendEvent(player, p, format, playerMessage, cancelled);
             plugin.getProxy().getPluginManager().callEvent(sendEvent);
+            return !sendEvent.isCancelled();
+        });
 
-            if (sendEvent.isCancelled()) {
-                continue;
-            }
-
-            p.sendMessage(bungeeComponent);
-        }
+        TextAdapter.sendComponent(recipients, message);
     }
 
 }
