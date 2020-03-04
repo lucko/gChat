@@ -39,22 +39,17 @@ import net.md_5.bungee.api.plugin.Plugin;
 import net.md_5.bungee.config.Configuration;
 import net.md_5.bungee.config.ConfigurationProvider;
 import net.md_5.bungee.config.YamlConfiguration;
+import net.md_5.bungee.log.ConciseFormatter;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.nio.file.Files;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.FileHandler;
-import java.util.logging.Formatter;
-import java.util.logging.LogRecord;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -196,29 +191,7 @@ public class GChatPlugin extends Plugin implements GChatApi {
             Logger logger = Logger.getLogger("gChat");
             logger.setUseParentHandlers(false);
 
-            final Formatter formatter = new Formatter() {
-                private final DateFormat date = new SimpleDateFormat("HH:mm:ss");
-
-                @Override
-                public String format(LogRecord record) {
-                    StringBuilder formatted = new StringBuilder();
-
-                    formatted.append(date.format(record.getMillis()));
-                    formatted.append(" [");
-                    formatted.append(record.getLevel().getLocalizedName());
-                    formatted.append("] ");
-                    formatted.append(formatMessage(record));
-                    formatted.append('\n');
-
-                    if (record.getThrown() != null) {
-                        StringWriter writer = new StringWriter();
-                        record.getThrown().printStackTrace(new PrintWriter(writer));
-                        formatted.append(writer);
-                    }
-
-                    return formatted.toString();
-                }
-            };
+            final ConciseFormatter formatter = new ConciseFormatter(false);
 
             if (config.isLogChat()) {
                 FileHandler logFile = new FileHandler(config.getLogFile(), true);
