@@ -27,7 +27,7 @@
                 </includes>
             </resource>
             <resource>
-                <directory>/</directory>
+                <directory>.</directory>
                 <filtering>false</filtering>
                 <includes>
                     <include>LICENSE.txt</include>
